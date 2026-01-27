@@ -54,6 +54,8 @@ docs/build/
 
 # Local development
 local_settings.py
+.trae
+.trae/*
 
 # Editor directories and files
 .vscode/*

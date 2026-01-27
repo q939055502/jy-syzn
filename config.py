@@ -43,7 +43,7 @@ class DevelopmentConfig(BaseConfig):
     
     # 开发环境数据库配置
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URI') or \
-        'mysql+pymysql://root:123@127.0.0.1:3306/jy_syzn?charset=utf8mb4'
+        'mysql+pymysql://jyzn_api:PSX546HP5PLKJJUC@127.0.0.1:3306/jyzn_api?charset=utf8mb4'
     
     # 开发环境日志级别
     LOG_LEVEL = 'DEBUG'

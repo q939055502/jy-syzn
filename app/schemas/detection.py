@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field
 from typing import Optional, List, Generic, TypeVar, Dict, Any
 from datetime import datetime, date
 
@@ -32,10 +32,9 @@ class CategoryResponse(CategoryBase):
     update_time: Optional[str] = Field(None, description="更新时间")
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
-# 更新前向引用
-CategoryResponse.model_rebuild()
+# Pydantic V1 会自动处理前向引用，不需要手动调用 model_rebuild()
 
 
 # 检测规范模型
@@ -69,7 +68,7 @@ class DetectionStandardResponse(DetectionStandardBase):
     update_time: Optional[datetime] = Field(None, description="更新时间")
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 # 检测对象模型
@@ -102,7 +101,7 @@ class DetectionObjectResponse(DetectionObjectBase):
     category_name: Optional[str] = Field(None, description="分类名称")
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 # 检测项目模型
@@ -135,7 +134,7 @@ class DetectionItemResponse(DetectionItemBase):
     object_name: Optional[str] = Field(None, description="检测对象名称")
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 # 检测参数模型
@@ -183,7 +182,7 @@ class DetectionParamResponse(DetectionParamBase):
     template: Optional[Dict[str, Any]] = Field(None, description="关联的委托单模板信息")
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 # 委托单模板模型
@@ -218,7 +217,7 @@ class DelegationFormTemplateResponse(DelegationFormTemplateBase):
     download_url: Optional[str] = Field(None, description="模板下载链接")
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 # 简化的委托单模板下载信息模型
