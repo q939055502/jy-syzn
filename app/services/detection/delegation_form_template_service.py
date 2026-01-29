@@ -134,8 +134,8 @@ class DelegationFormTemplateService:
             # 验证必填字段
             if 'template_name' not in template_data or not template_data['template_name']:
                 return (None, "模板名称不能为空")
-            if 'template_version' not in template_data or not template_data['template_version']:
-                return (None, "模板版本不能为空")
+            if 'template_code' not in template_data or not template_data['template_code']:
+                return (None, "模板编号不能为空")
             if 'file_type' not in template_data or not template_data['file_type']:
                 return (None, "文件类型不能为空")
             
@@ -215,7 +215,6 @@ class DelegationFormTemplateService:
             
             # 保存模板的旧信息，用于后续文件处理
             old_template_name = template.template_name
-            old_template_version = template.template_version
             old_file_type = template.file_type
             
             # 保存上传的文件到临时位置（如果有）

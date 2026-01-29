@@ -49,12 +49,10 @@ def get_template(template_id: int):
 
 
 @router.post("/templates", response_model=ResponseModel[DelegationFormTemplateResponse], status_code=201)
-def create_template(
+async def create_template(
     template_name: str = Form(...),
-    template_version: str = Form(...),
-    template_code: Optional[str] = Form(None),
-    file_type: str = Form(...),
-    status: int = Form(1),
+    template_code: str = Form(...),
+    status: Optional[int] = Form(1),
     remark: Optional[str] = Form(None),
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_active_user)
@@ -64,10 +62,13 @@ def create_template(
     if not is_allowed_file(file.filename):
         raise HTTPException(status_code=400, detail="不支持的文件格式，仅允许.doc、.docx、.xls、.xlsx格式")
     
+    # 始终从上传文件的文件名中提取文件类型，忽略前端传送过来的文件类型
+    from app.services.detection.utils.file_utils import get_file_extension
+    file_type = get_file_extension(file.filename)
+    
     # 构建模板数据字典
     template_data = {
         "template_name": template_name,
-        "template_version": template_version,
         "template_code": template_code,
         "file_type": file_type,
         "upload_user": current_user.username,  # 使用当前登录用户的用户名
@@ -88,12 +89,10 @@ def create_template(
 
 
 @router.put("/templates/{template_id}", response_model=ResponseModel[DelegationFormTemplateResponse])
-def update_template(
+async def update_template(
     template_id: int,
     template_name: Optional[str] = Form(None),
-    template_version: Optional[str] = Form(None),
     template_code: Optional[str] = Form(None),
-    file_type: Optional[str] = Form(None),
     status: Optional[int] = Form(None),
     remark: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
@@ -108,12 +107,8 @@ def update_template(
     template_data = {}
     if template_name is not None:
         template_data["template_name"] = template_name
-    if template_version is not None:
-        template_data["template_version"] = template_version
     if template_code is not None:
         template_data["template_code"] = template_code
-    if file_type is not None:
-        template_data["file_type"] = file_type
     # 总是使用当前登录用户的用户名作为上传人
     template_data["upload_user"] = current_user.username
     if status is not None:

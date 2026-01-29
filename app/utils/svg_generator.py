@@ -83,7 +83,7 @@ class SVGGenerator:
         self.text_margin = 1  # 文字与边框距离尽可能最小、紧凑
         
         # 水印配置
-        self.watermark_text = "鸿艺检测(揭阳)"
+        self.watermark_text = "我是水印"
         self.watermark_color = "#888888"
         self.watermark_opacity = 0.3
         self.watermark_rotation = 30

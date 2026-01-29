@@ -45,7 +45,7 @@ def get_item(item_id: int):
 @router.post("/items", response_model=ResponseModel[DetectionItemResponse])
 def create_item(item: DetectionItemCreate):
     """创建检测项目"""
-    item_obj, error = DetectionItemService.create(item.model_dump())
+    item_obj, error = DetectionItemService.create(item.dict())
     if error:
         if "不能为空" in error or "不能重复" in error or "已禁用" in error:
             return ResponseModel(code=400, message=error, data=None)
@@ -58,7 +58,7 @@ def create_item(item: DetectionItemCreate):
 @router.put("/items/{item_id}", response_model=ResponseModel[DetectionItemResponse])
 def update_item(item_id: int, item: DetectionItemUpdate):
     """更新检测项目"""
-    item_obj, error = DetectionItemService.update(item_id, item.model_dump(exclude_unset=True))
+    item_obj, error = DetectionItemService.update(item_id, item.dict(exclude_unset=True))
     if error:
         if "不能为空" in error or "不能重复" in error or "已禁用" in error:
             return ResponseModel(code=400, message=error, data=None)

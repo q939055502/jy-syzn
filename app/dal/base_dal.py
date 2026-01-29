@@ -110,38 +110,6 @@ class BaseDAL:
         
         return instance
     
-    def _get_id_field_name(self) -> str:
-        """
-        获取模型的ID字段名
-        :return: ID字段名字符串
-        """
-        # 根据模型类型确定ID字段名
-        if self.model.__name__ == "DetectionItem":
-            id_field = "item_id"
-        elif self.model.__name__ == "DetectionStandard":
-            id_field = "standard_id"
-        elif self.model.__name__ == "DetectionParam":
-            # DetectionParam模型使用"param_id"作为主键字段名
-            id_field = "param_id"
-        elif self.model.__name__ == "User":
-            # User模型使用简单的"id"作为主键字段名
-            id_field = "id"
-        elif self.model.__name__ == "Category":
-            # Category模型使用"category_id"作为主键字段名
-            id_field = "category_id"
-        elif self.model.__name__ == "DetectionObject":
-            # DetectionObject模型使用"object_id"作为主键字段名
-            id_field = "object_id"
-        elif self.model.__name__ == "DelegationFormTemplate":
-            # DelegationFormTemplate模型使用"template_id"作为主键字段名
-            id_field = "template_id"
-        elif self.model.__name__ == "DataImage":
-            # DataImage模型使用"image_id"作为主键字段名
-            id_field = "image_id"
-        else:
-            # 默认使用类名小写+_id
-            id_field = f"{self.model.__name__.lower()}_id"
-    
     def get_all(self) -> List[ModelType]:
         """
         获取所有数据

@@ -415,7 +415,7 @@ class DataToPNGDirectConverter:
         """
         logger.info(f"开始添加水印，图片尺寸: {width}x{height}")
         
-        watermark_text = "鸿艺检测(揭阳)"
+        watermark_text = "我是水印"
         
         # 使用合适的字体大小
         font_size = 16  # 使用12号字体，确保清晰可见

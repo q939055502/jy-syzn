@@ -45,7 +45,7 @@ def get_standard(standard_id: int):
 @router.post("/standards", response_model=ResponseModel[DetectionStandardResponse], status_code=201)
 def create_standard(standard: DetectionStandardCreate):
     """创建检测规范"""
-    standard_obj, error = DetectionStandardService.create(standard.model_dump())
+    standard_obj, error = DetectionStandardService.create(standard.dict())
     if error:
         if "不能为空" in error:
             raise HTTPException(status_code=400, detail=error)
@@ -58,7 +58,7 @@ def create_standard(standard: DetectionStandardCreate):
 @router.put("/standards/{standard_id}", response_model=ResponseModel[DetectionStandardResponse])
 def update_standard(standard_id: int, standard: DetectionStandardUpdate):
     """更新检测规范"""
-    standard_obj, error = DetectionStandardService.update(standard_id, standard.model_dump(exclude_unset=True))
+    standard_obj, error = DetectionStandardService.update(standard_id, standard.dict(exclude_unset=True))
     if error:
         if "不存在" in error:
             raise HTTPException(status_code=404, detail=error)

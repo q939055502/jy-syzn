@@ -28,7 +28,7 @@ def create_permission(
     db, redis = db_and_redis
     permission_obj = PermissionAdminService.create_permission(
         db=db,
-        **permission.model_dump()
+        **permission.dict()
     )
     return ResponseModel(data=permission_obj, message="权限创建成功")
 
@@ -98,7 +98,7 @@ def update_permission(
     permission_obj = PermissionAdminService.update_permission(
         db=db,
         permission_id=permission_id,
-        **permission.model_dump(exclude_unset=True)
+        **permission.dict(exclude_unset=True)
     )
     if not permission_obj:
         raise HTTPException(status_code=404, detail="权限不存在")

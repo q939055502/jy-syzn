@@ -189,9 +189,8 @@ class DetectionParamResponse(DetectionParamBase):
 class DelegationFormTemplateBase(BaseModel):
     """委托单模板基础模型"""
     template_name: str = Field(..., description="模板名称")
-    template_version: str = Field(..., description="模板版本")
-    template_code: Optional[str] = Field(None, description="模板编号")
-    file_path: str = Field(..., description="模板文件路径")
+    template_code: str = Field(..., description="模板编号")
+    file_path: Optional[str] = Field(None, description="模板文件路径")
     file_type: Optional[str] = Field(None, description="文件类型")
     upload_user: Optional[str] = Field(None, description="上传人")
     status: Optional[int] = Field(1, description="状态：1=启用，0=禁用")
@@ -206,7 +205,7 @@ class DelegationFormTemplateCreate(DelegationFormTemplateBase):
 class DelegationFormTemplateUpdate(DelegationFormTemplateBase):
     """更新委托单模板请求模型"""
     template_name: Optional[str] = Field(None, description="模板名称")
-    template_version: Optional[str] = Field(None, description="模板版本")
+    template_code: Optional[str] = Field(None, description="模板编号")
     file_path: Optional[str] = Field(None, description="模板文件路径")
 
 

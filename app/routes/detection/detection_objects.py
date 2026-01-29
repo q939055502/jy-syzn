@@ -48,7 +48,7 @@ def get_object(object_id: int):
 @router.post("/objects", response_model=ResponseModel[DetectionObjectResponse], status_code=201)
 def create_object(obj: DetectionObjectCreate):
     """创建检测对象"""
-    obj_data, error = DetectionObjectService.create(obj.model_dump())
+    obj_data, error = DetectionObjectService.create(obj.dict())
     if error:
         if "不能为空" in error or "已禁用" in error or "不能重复" in error:
             raise HTTPException(status_code=400, detail=error)
@@ -61,7 +61,7 @@ def create_object(obj: DetectionObjectCreate):
 @router.put("/objects/{object_id}", response_model=ResponseModel[DetectionObjectResponse])
 def update_object(object_id: int, obj: DetectionObjectUpdate):
     """更新检测对象"""
-    obj_data, error = DetectionObjectService.update(object_id, obj.model_dump(exclude_unset=True))
+    obj_data, error = DetectionObjectService.update(object_id, obj.dict(exclude_unset=True))
     if error:
         if "不存在" in error:
             raise HTTPException(status_code=404, detail=error)

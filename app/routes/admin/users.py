@@ -105,7 +105,7 @@ def update_user(
     """
     db, redis = db_and_redis
     user_obj = UserAdminService.update_user(
-        user_id=user_id, **user.model_dump(exclude_unset=True)
+        user_id=user_id, **user.dict(exclude_unset=True)
     )
     return ResponseModel(data=user_obj, message="用户更新成功")
 

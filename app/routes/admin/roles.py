@@ -104,7 +104,7 @@ def update_role(
     db, redis = db_and_redis
     
     # 处理角色数据，排除permissions字段，单独处理
-    role_data = role.model_dump(exclude_unset=True)
+    role_data = role.dict(exclude_unset=True)
     permissions = role_data.pop("permissions", None)
     
     # 更新角色基本信息

@@ -76,7 +76,7 @@ def get_param(param_id: int):
 def create_param(param: DetectionParamCreate):
     """创建检测参数"""
     # 注意：实际项目中需要添加权限验证，仅允许管理员访问
-    param_obj, error = DetectionParamService.create(param.model_dump())
+    param_obj, error = DetectionParamService.create(param.dict())
     if error:
         if "不能为空" in error or "不能重复" in error or "已禁用" in error:
             return ResponseModel(code=400, message=error, data=None)
@@ -92,7 +92,7 @@ def create_param(param: DetectionParamCreate):
 def update_param(param_id: int, param: DetectionParamUpdate):
     """更新检测参数"""
     # 注意：实际项目中需要添加权限验证，仅允许管理员访问
-    param_obj, error = DetectionParamService.update(param_id, param.model_dump(exclude_unset=True))
+    param_obj, error = DetectionParamService.update(param_id, param.dict(exclude_unset=True))
     if error:
         if "不能为空" in error or "不能重复" in error or "已禁用" in error:
             return ResponseModel(code=400, message=error, data=None)

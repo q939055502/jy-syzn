@@ -38,7 +38,7 @@ def get_category(category_id: int):
 @router.post("/categories", response_model=ResponseModel[CategoryResponse], status_code=201)
 def create_category(category: CategoryCreate):
     """创建分类"""
-    category_obj, error = CategoryService.create(category.model_dump())
+    category_obj, error = CategoryService.create(category.dict())
     if error:
         if "不能为空" in error:
             raise HTTPException(status_code=400, detail=error)
@@ -51,7 +51,7 @@ def create_category(category: CategoryCreate):
 @router.put("/categories/{category_id}", response_model=ResponseModel[CategoryResponse])
 def update_category(category_id: int, category: CategoryUpdate):
     """更新分类"""
-    category_obj, error = CategoryService.update(category_id, category.model_dump(exclude_unset=True))
+    category_obj, error = CategoryService.update(category_id, category.dict(exclude_unset=True))
     if error:
         if "不存在" in error:
             raise HTTPException(status_code=404, detail=error)

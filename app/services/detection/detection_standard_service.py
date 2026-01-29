@@ -139,8 +139,8 @@ class DetectionStandardService:
             standard_dal = DetectionStandardDAL(db, redis)
             
             # 检查规范编号是否已存在
-            existing_standard, _ = DetectionStandardService.get_by_code(standard_data['standard_code'])
-            if existing_standard:
+            existing_standards = standard_dal.get_by_condition({"standard_code": standard_data['standard_code']})
+            if existing_standards:
                 return (None, f"规范编号 {standard_data['standard_code']} 已存在")
             
             # 处理替代规范ID
@@ -206,8 +206,8 @@ class DetectionStandardService:
             # 当更新规范编号时，检查唯一性
             if 'standard_code' in standard_data and standard_data['standard_code'] != current_standard.standard_code:
                 # 检查是否有其他规范使用了相同的编号
-                existing_standard, _ = DetectionStandardService.get_by_code(standard_data['standard_code'])
-                if existing_standard:
+                existing_standards = standard_dal.get_by_condition({"standard_code": standard_data['standard_code']})
+                if existing_standards:
                     return (None, f"规范编号 {standard_data['standard_code']} 已存在")
             
             # 处理替代规范ID
