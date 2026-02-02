@@ -273,7 +273,13 @@ class DataToPNGDirectConverter:
                     
                     # 处理文本颜色（第一列根据is_regular_param设置）
                     if col_idx == 0:
-                        is_regular = row.get('is_regular_param', 0) == 1
+                        is_regular_param = row.get('is_regular_param', 0)
+                        # 确保is_regular_param是整数
+                        try:
+                            is_regular_param = int(is_regular_param)
+                        except (ValueError, TypeError):
+                            is_regular_param = 0
+                        is_regular = is_regular_param == 1
                         text_color = 'red' if is_regular else 'black'
                     else:
                         text_color = 'black'

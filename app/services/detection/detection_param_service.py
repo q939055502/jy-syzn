@@ -270,6 +270,40 @@ class DetectionParamService:
             # 重新查询参数对象，包含关联的规范信息
             param = param_dal.get_by_id(param.param_id, with_relations=True)
             
+            # 重新生成SVG图片，确保新添加的参数能在图片中显示
+            # 获取参数所属的项目信息
+            item_id = param.item_id
+            item_name = param.item.item_name if param.item else f"项目{item_id}"
+            
+            # 重新生成检测参数图片
+            try:
+                from app.services.image.image_service import ImageService
+                from app.dal.data_image_dal import DataImageDAL
+                
+                # 重新生成检测参数图片
+                ImageService.generate_detection_image(item_id, item_name)
+                logger.info(f"成功重新生成检测参数图片: 项目{item_id}")
+                
+                # 清除Redis缓存，确保下次获取图片时从数据库获取新数据
+                db, redis, close_db_func = get_db_redis_direct()
+                
+                # 清除所有设备类型的缓存
+                device_types = ['pc', 'phone', 'tablet']
+                data_unique_id = f"detection:{item_id}"
+                
+                for device_type in device_types:
+                    # 直接清除缓存，使用与image_service.py中相同的缓存键格式
+                    cache_key = f"data_img:{data_unique_id}:{device_type}"
+                    from app.utils.redis_utils import RedisUtils
+                    RedisUtils.delete_cache(redis, cache_key)
+                    logger.info(f"清除Redis缓存: {cache_key}")
+                
+                if close_db_func:
+                    close_db_func()
+            except Exception as e:
+                logger.error(f"重新生成检测参数图片失败: {str(e)}")
+                # 图片生成失败不影响参数创建，继续执行
+            
             logger.info(f"成功创建检测参数: {param.param_id}")
             return (param, None)
         except Exception as e:
@@ -378,6 +412,40 @@ class DetectionParamService:
             
             # 重新查询参数对象，包含关联的规范信息
             param = param_dal.get_by_id(param_id, with_relations=True)
+            
+            # 只要更新了检测参数，就重新生成SVG图片
+            # 获取参数所属的项目信息
+            item_id = param.item_id
+            item_name = param.item.item_name if param.item else f"项目{item_id}"
+            
+            # 重新生成检测参数图片
+            try:
+                from app.services.image.image_service import ImageService
+                from app.dal.data_image_dal import DataImageDAL
+                
+                # 重新生成检测参数图片
+                ImageService.generate_detection_image(item_id, item_name)
+                logger.info(f"成功重新生成检测参数图片: 项目{item_id}")
+                
+                # 清除Redis缓存，确保下次获取图片时从数据库获取新数据
+                db, redis, close_db_func = get_db_redis_direct()
+                
+                # 清除所有设备类型的缓存
+                device_types = ['pc', 'phone', 'tablet']
+                data_unique_id = f"detection:{item_id}"
+                
+                for device_type in device_types:
+                    # 直接清除缓存，使用与image_service.py中相同的缓存键格式
+                    cache_key = f"data_img:{data_unique_id}:{device_type}"
+                    from app.utils.redis_utils import RedisUtils
+                    RedisUtils.delete_cache(redis, cache_key)
+                    logger.info(f"清除Redis缓存: {cache_key}")
+                
+                if close_db_func:
+                    close_db_func()
+            except Exception as e:
+                logger.error(f"重新生成检测参数图片失败: {str(e)}")
+                # 图片生成失败不影响参数更新，继续执行
             
             logger.info(f"成功更新检测参数: {param_id}")
             return (param, None)

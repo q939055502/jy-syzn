@@ -7,3 +7,8 @@ pymysql==1.0.3
 tzdata
 cairosvg==2.8.2
 pillow==12.1.0
+redis
+python-jose
+passlib
+python-multipart
+cryptography

@@ -1,7 +1,7 @@
 # 认证相关路由
 # 包含登录、刷新令牌、注销等功能
 
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Body, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 from app.services.auth.auth_service import AuthService
@@ -18,14 +18,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 class TokenData(BaseModel):
     access_token: str
     token_type: str
-    refresh_token: str
     user: dict
 
 # 访问令牌数据模型
 class AccessTokenData(BaseModel):
     access_token: str
     token_type: str
-    refresh_token: str
 
 
 # 添加登录请求模型
@@ -40,7 +38,7 @@ def login_for_access_token(
     response: Response = Response()
 ):
     """
-    获取访问令牌和刷新令牌
+    获取访问令牌
     
     - **username**: 用户名
     - **password**: 密码
@@ -48,8 +46,9 @@ def login_for_access_token(
     返回:
     - **access_token**: 访问令牌，用于访问受保护的API
     - **token_type**: 令牌类型，固定为"bearer"
-    - **refresh_token**: 刷新令牌，用于获取新的访问令牌
     - **user**: 用户信息
+    
+    注意：刷新令牌将通过 HttpOnly Cookie 下发
     """
     # 使用新的认证方法
     from app.services.auth.auth_service import AuthService
@@ -80,11 +79,26 @@ def login_for_access_token(
     AuthService.cache_user_info(user_id, user_info)
     _, is_other_device_login = AuthService.cache_tokens(user_id, access_token, refresh_token)
     
+    # 从配置中获取刷新令牌过期时间
+    from config import config
+    app_config = config['development']
+    refresh_token_expire_seconds = app_config.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600
+    
+    # 将刷新令牌写入 HttpOnly Cookie
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        max_age=refresh_token_expire_seconds,  # 与刷新令牌过期时间一致
+        path="/",
+        secure=False,  # 开发环境设为False，生产环境设为True
+        samesite="lax"  # 防止CSRF攻击
+    )
+    
     # 准备响应数据
     token_data = {
         "access_token": access_token,
         "token_type": "bearer",
-        "refresh_token": refresh_token,
         "user": user_info
     }
     
@@ -95,27 +109,32 @@ def login_for_access_token(
     return {"data": token_data, "message": message}
 
 
-# 刷新令牌请求模型
-class RefreshTokenRequest(BaseModel):
-    refresh_token: str = Field(..., description="刷新令牌")
-
 @router.post("/refresh", response_model=ResponseModel[AccessTokenData], summary="刷新访问令牌")
 def refresh_access_token(
-    refresh_request: RefreshTokenRequest,
+    request: Request,
     response: Response = Response()
 ):
     """
-    使用刷新令牌获取新的访问令牌和刷新令牌
+    使用刷新令牌获取新的访问令牌
     
-    - **refresh_token**: 刷新令牌
+    注意：刷新令牌将从 HttpOnly Cookie 中获取
     
     返回:
     - **access_token**: 新的访问令牌
     - **token_type**: 令牌类型，固定为"bearer"
-    - **refresh_token**: 新的刷新令牌
     """
+    # 从 Cookie 中获取刷新令牌
+    refresh_token = request.cookies.get("refresh_token")
+    
+    # 如果 Cookie 中没有刷新令牌，返回 401 错误
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="刷新令牌缺失",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     # 从刷新令牌中获取用户
-    refresh_token = refresh_request.refresh_token
     user = AuthService.get_user_from_token(refresh_token)
     
     if not user:
@@ -137,11 +156,26 @@ def refresh_access_token(
     # 更新Redis中的令牌缓存
     AuthService.cache_tokens(user.id, access_token, new_refresh_token)
     
+    # 从配置中获取刷新令牌过期时间
+    from config import config
+    app_config = config['development']
+    refresh_token_expire_seconds = app_config.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600
+    
+    # 将新的刷新令牌写入 HttpOnly Cookie
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh_token,
+        httponly=True,
+        max_age=refresh_token_expire_seconds,  # 与刷新令牌过期时间一致
+        path="/",
+        secure=False,  # 开发环境设为False，生产环境设为True
+        samesite="lax"  # 防止CSRF攻击
+    )
+    
     # 准备响应数据
     access_token_data = {
         "access_token": access_token,
-        "token_type": "bearer",
-        "refresh_token": new_refresh_token
+        "token_type": "bearer"
     }
     
     return {"data": access_token_data, "message": "令牌刷新成功"}
@@ -184,6 +218,12 @@ def logout(
     else:
         # 如果无法获取用户，至少将当前访问令牌添加到黑名单
         AuthService.add_token_to_blacklist(token)
+    
+    # 清除 Cookie 中的刷新令牌
+    response.delete_cookie(
+        key="refresh_token",
+        path="/"
+    )
     
     return {"message": "注销成功"}
 
