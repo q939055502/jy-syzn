@@ -255,7 +255,7 @@ async def get_categories_with_objects():
 
 @router.get("/items/search", response_model=ListResponseModel[dict])
 async def search_items(
-    keyword: Optional[str] = Query(None, description="搜索关键词，支持检测对象、规范名称、规范代码、检测参数")
+    keyword: str = Query(..., description="搜索关键词，支持检测对象、规范名称、规范代码、检测参数")
 ):
     """
     根据关键词搜索检测项目列表，支持按检测对象、规范名称、规范代码、检测参数搜索
@@ -275,21 +275,6 @@ async def search_items(
         # 过滤出状态为启用的数据
         enabled_items = [item for item in items if item['status'] == 1]
         
-        # 如果没有关键词，直接返回所有启用的检测项目
-        if not keyword:
-            # 只返回id和名称，与get_public_object_items接口一致
-            result = [{
-                "item_id": item['item_id'],
-                "item_name": item['item_name']
-            } for item in enabled_items]
-            
-            return {
-                "code": 200,
-                "message": "获取检测项目列表成功",
-                "data": result,
-                "total": len(result)
-            }
-        
         # 处理关键词搜索
         keyword_lower = keyword.lower()
         
@@ -298,10 +283,34 @@ async def search_items(
         
         # 遍历所有启用的检测项目
         for item in enabled_items:
-            # 搜索条件：检测对象名称、规范名称、规范代码、检测参数
-            # 这里简化处理，实际可能需要关联查询多个表
-            # 目前先基于item中的object_name进行搜索
-            if keyword_lower in item['object_name'].lower() or keyword_lower in item['item_name'].lower():
+            # 基础搜索条件：检测对象名称和检测项目名称
+            basic_match = keyword_lower in item['object_name'].lower() or keyword_lower in item['item_name'].lower()
+            
+            # 扩展搜索条件：检测参数、规范名称、规范代码
+            extended_match = False
+            
+            # 获取检测项目关联的检测参数
+            params, total, error = DetectionParamService.get_by_item_id(item['item_id'], page=1, limit=1000)
+            if not error and params:
+                for param in params:
+                    # 检查检测参数名称
+                    if hasattr(param, 'param_name') and keyword_lower in param.param_name.lower():
+                        extended_match = True
+                        break
+                    
+                    # 检查检测参数关联的规范
+                    if hasattr(param, 'standards') and param.standards:
+                        for standard in param.standards:
+                            # 检查规范名称和代码
+                            if (hasattr(standard, 'standard_name') and keyword_lower in standard.standard_name.lower()) or \
+                               (hasattr(standard, 'standard_code') and keyword_lower in standard.standard_code.lower()):
+                                extended_match = True
+                                break
+                        if extended_match:
+                            break
+            
+            # 如果任何一个条件匹配，添加到搜索结果
+            if basic_match or extended_match:
                 search_result.append({
                     "item_id": item['item_id'],
                     "item_name": item['item_name']
